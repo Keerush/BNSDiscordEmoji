@@ -10,6 +10,7 @@ namespace BNSDiscordEmoji
     {
         static void Main(string[] args)
         {
+            BNSBot bot = new BNSBot();
         }
     }
 }
