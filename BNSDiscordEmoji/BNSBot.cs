@@ -16,7 +16,7 @@ namespace BNSDiscordEmoji
         CommandService commands;
 
         string[] bnsEmojis = Directory.GetFiles("emojis", "*.png")
-                                        .Select(path => Path.GetFileName(path))
+                                        .Select(path => Path.GetFileNameWithoutExtension(path))
                                         .ToArray();
 
         public BNSBot()
@@ -39,8 +39,8 @@ namespace BNSDiscordEmoji
             {
                 await e.Channel.SendMessage("Hi");
             });
-
-            BNSEmojiCommand();
+            
+            BNSMessageCommand();
 
             discord.ExecuteAndWait(async () =>
             {
@@ -48,17 +48,24 @@ namespace BNSDiscordEmoji
             });
         }
 
-        private void BNSEmojiCommand()
+        private void BNSMessageCommand()
         {
-            foreach (string emoji in bnsEmojis)
+            discord.MessageReceived += async (s, e) =>
             {
-                string command = emoji.Substring(0, emoji.LastIndexOf(".png"));
-                commands.CreateCommand(command).Do(async (e) =>
+                if (!e.Message.IsAuthor)
                 {
-                    string emojiToPost = "emojis/" + emoji;
-                    await e.Channel.SendFile(emojiToPost);
-                });
-            }
+                    string message = e.Message.ToString();
+                    string[] messageContents = message.Substring(message.IndexOf(":") + 1).Split(' ');
+
+                    foreach (string word in messageContents)
+                    {
+                        if (word.Length!= 0 && bnsEmojis.Contains(word.Substring(1)))
+                        {
+                            await e.Channel.SendFile("emojis" + word + ".png");
+                        }
+                    }
+                }
+            };
         }
 
         private void Log(object sender, LogMessageEventArgs e)
